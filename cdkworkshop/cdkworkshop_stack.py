@@ -1,9 +1,7 @@
 from aws_cdk import (
-    aws_iam as iam,
-    aws_sqs as sqs,
-    aws_sns as sns,
-    aws_sns_subscriptions as subs,
-    core
+    core,
+    aws_lambda as _lambda #cant use lambda here because its a python element
+
 )
 
 
@@ -12,13 +10,11 @@ class CdkworkshopStack(core.Stack):
     def __init__(self, scope: core.Construct, construct_id: str, **kwargs) -> None:
         super().__init__(scope, construct_id, **kwargs)
 
-        queue = sqs.Queue(
-            self, "CdkworkshopQueue",
-            visibility_timeout=core.Duration.seconds(300),
-        )
+        # the id of the construct (here lambda) must be unique within this scope
+        function = _lambda.Function(self,
+                                    id='HelloFromCDK',
+                                    runtime=_lambda.Runtime.PYTHON_3_7,
+                                    code=_lambda.Code.asset('lambda'), # same as dir of lambda code
+                                    handler='hello_from_cdk.handler', #filename.handlername
+                                    )
 
-        topic = sns.Topic(
-            self, "CdkworkshopTopic"
-        )
-
-        topic.add_subscription(subs.SqsSubscription(queue))
