@@ -4,7 +4,7 @@ from aws_cdk import (
     aws_apigateway as apigw,
 )
 
-from hitcpunter import HitCounter
+from hitcounter import HitCounter
 
 
 class CdkworkshopStack(core.Stack):
@@ -14,14 +14,22 @@ class CdkworkshopStack(core.Stack):
 
         # the id of the construct (here lambda) must be unique within this scope
         # TODO: self?
-        my_function = _lambda.Function(self,
-                                    id='HelloFromHitCounter',
-                                    runtime=_lambda.Runtime.PYTHON_3_7,
-                                    code=_lambda.Code.asset('lambda'),  # same as dir of lambda code
-                                    handler='hitcount.handler',  # filename.handlername
-                                   )
+        # Defines an AWS Lambda resource
+        my_lambda = _lambda.Function(
+            self, 'HelloHandler',
+            runtime=_lambda.Runtime.PYTHON_3_7,
+            code=_lambda.Code.asset('lambda'),
+            handler='hello_from_cdk.handler',
+        )
 
-        hello_from_hitcounter = HitCounter(self, id='HelloHitCounter', downstream=my_function)
-        apigw.LambdaRestApi(self, id='CDKendpoint', handler=hello_from_hitcounter.handler)
+        hello_with_counter = HitCounter(
+            self, 'HelloHitCounter',
+            downstream=my_lambda,
+        )
 
-        # A request will go the following way: Gateway-hello_from_hitcounter(increase_count)-my-function
+        apigw.LambdaRestApi(
+            self, 'Endpoint',
+            handler=hello_with_counter.handler,
+        )
+
+        # A request will go the following way: Gateway-hello_with_counter(increase_count)-my_lambda
